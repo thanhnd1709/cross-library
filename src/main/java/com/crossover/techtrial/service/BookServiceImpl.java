@@ -40,6 +40,7 @@ public class BookServiceImpl implements BookService{
     
   }
   
+  @Override
   @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
   @CachePut (value = "book", key = "#result.id")
   public Book save(Book p) {

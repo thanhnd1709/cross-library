@@ -1,5 +1,7 @@
 package com.crossover.techtrial.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -33,6 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
 	@Transactional(propagation = Propagation.REQUIRED, readOnly = false)
 	@CachePut(value = "transaction", key = "#result.id")
 	public Transaction save(Transaction tran) {
+		tran.setDateOfIssue(LocalDateTime.now());
 		return transactionRepository.save(tran);
 	}
 

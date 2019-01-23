@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RestResource;
 
 import com.crossover.techtrial.model.Member;
@@ -27,5 +28,5 @@ public interface MemberRepository extends PagingAndSortingRepository<Member, Lon
 			"ORDER BY bookCount DESC " + 
 			"limit :count",
 			nativeQuery = true)
-	List<Object[]> getTopMembers(Long count, LocalDateTime startTime, LocalDateTime endTime);
+	List<Object[]> getTopMembers(@Param("count") Long count, @Param("startTime")  LocalDateTime startTime, @Param("endTime")  LocalDateTime endTime);
 }

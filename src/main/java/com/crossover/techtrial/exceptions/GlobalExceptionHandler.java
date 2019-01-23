@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return handleExceptionInternal(ex, DATE_FORMAT_ERROR_MESSAGE, headers, status, request);
 	}
 	
+	@ExceptionHandler(value = { DataIntegrityViolationException.class})
+	public ResponseEntity<AbstractMap.SimpleEntry<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
+		LOG.error("Bad request: Violate data integrity constraint.", exception);
+		AbstractMap.SimpleEntry<String, String> response = new AbstractMap.SimpleEntry<>("message",
+				exception.getMessage());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+	
+	@ExceptionHandler(value= {TransactionException.class}) 
+	public ResponseEntity<Object> handleRideException(TransactionException exception) {
+		// general exception
+		LOG.error("Exception: Transaction exception ", exception);
+		return ResponseEntity.status(exception.getStatus()).body(exception.getMessage());
+	}
 	/**
 	 * Global Exception handler for all exceptions.
 	 */

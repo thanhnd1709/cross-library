@@ -43,6 +43,7 @@ public class MemberController {
 	 */
 	@PostMapping(path = "/api/member")
 	public ResponseEntity<Member> register(@Valid @RequestBody Member p) {
+		p.setMembershipStartDate(LocalDateTime.now());
 		Member savedMember = memberService.save(p);
 		log.info("Member {} was registered successfully", savedMember);
 		return ResponseEntity.ok(savedMember);

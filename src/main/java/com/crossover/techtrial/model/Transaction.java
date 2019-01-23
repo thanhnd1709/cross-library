@@ -66,6 +66,4 @@ public class Transaction implements Serializable {
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	LocalDateTime dateOfReturn;
-	
-	
 }

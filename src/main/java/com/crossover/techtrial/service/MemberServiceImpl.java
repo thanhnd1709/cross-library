@@ -3,6 +3,7 @@
  */
 package com.crossover.techtrial.service;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +41,14 @@ public class MemberServiceImpl implements MemberService {
 	public Member save(Member member) {
 		return memberRepository.save(member);
 	}
-	
-	@Autowired
+	@Override
 	@Cacheable (value = "member", key = "#memberId")
 	public Member findById(Long memberId) {
 		Optional<Member> optionalMember = memberRepository.findById(memberId);
 	    return optionalMember.orElse(null);
 	}
 
+	@Override
 	public List<Member> getAll() {
 		List<Member> members = new ArrayList<>();
 		memberRepository.findAll().forEach(members::add);
@@ -59,10 +60,10 @@ public class MemberServiceImpl implements MemberService {
 		List<TopMemberDTO> memberList = new ArrayList<>();
 		List<Object[]> objectList = memberRepository.getTopMembers(count, startTime, endTime);
 		for (Object[] currentObject : objectList) {
-			Long memberId = (Long) currentObject[POSITION_ZERO];
+			Long memberId = ((BigInteger) currentObject[POSITION_ZERO]).longValue();
 			String name = (String) currentObject[POSITION_ONE];
 			String email = (String) currentObject[POSITION_TWO];
-			Integer bookCount = (Integer) currentObject[POSITION_THREE];
+			Integer bookCount = ((BigInteger) currentObject[POSITION_THREE]).intValue();
 			TopMemberDTO tempTopMemberDTO = new TopMemberDTO(memberId, name, email, bookCount);
 			memberList.add(tempTopMemberDTO);
 		}

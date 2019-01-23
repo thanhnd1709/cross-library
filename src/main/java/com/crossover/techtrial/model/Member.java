@@ -52,7 +52,6 @@ public class Member implements Serializable {
 
 	@Enumerated(EnumType.STRING)
 	@NotNull
-	@Size(max = 255)
 	MembershipStatus membershipStatus;
 
 	@Column(name = "membership_start_date")
