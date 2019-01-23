@@ -59,9 +59,9 @@ public class MemberServiceImpl implements MemberService {
 		List<TopMemberDTO> memberList = new ArrayList<>();
 		List<Object[]> objectList = memberRepository.getTopMembers(count, startTime, endTime);
 		for (Object[] currentObject : objectList) {
-			String name = (String) currentObject[POSITION_ZERO];
-			String email = (String) currentObject[POSITION_ONE];
-			Long memberId = (Long) currentObject[POSITION_TWO];
+			Long memberId = (Long) currentObject[POSITION_ZERO];
+			String name = (String) currentObject[POSITION_ONE];
+			String email = (String) currentObject[POSITION_TWO];
 			Integer bookCount = (Integer) currentObject[POSITION_THREE];
 			TopMemberDTO tempTopMemberDTO = new TopMemberDTO(memberId, name, email, bookCount);
 			memberList.add(tempTopMemberDTO);

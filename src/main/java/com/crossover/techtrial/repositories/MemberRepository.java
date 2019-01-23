@@ -19,16 +19,13 @@ import com.crossover.techtrial.model.Member;
 @RestResource(exported=false)
 public interface MemberRepository extends PagingAndSortingRepository<Member, Long> {
 
-	@Query(value = "SELECT P.name as name, P.email as email, SUM(R.duration) as totalRideDurationInSeconds, max(R.duration) as maxRideDurationInSecods, avg(R.distance) as averageDistance   " + 
-			" FROM ( " + 
-			"	SELECT *, TIMESTAMPDIFF(SECOND,start_time,end_time) as duration   " + 
-			"	FROM ride   " + 
-			"	WHERE start_time >= :startTime AND end_time <= :endTime  " + 
-			"	) R   " + 
-			" LEFT JOIN person P ON R.driver_id = P.id   " + 
-			" GROUP BY name, email   " + 
-			" ORDER BY totalRideDurationInSeconds DESC " + 
-			" LIMIT :count", 
+	@Query(value = "select M.id as memberId, M.name as name, M.email as email, count(*) as bookCount " + 
+			"from member M inner join transaction T " + 
+			"on M.id = T.member_id " + 
+			"where T.date_of_issue >= :startTime AND T.date_of_return <= :endTime " + 
+			"GROUP BY memberId, name, email " + 
+			"ORDER BY bookCount DESC " + 
+			"limit :count",
 			nativeQuery = true)
 	List<Object[]> getTopMembers(Long count, LocalDateTime startTime, LocalDateTime endTime);
 }
