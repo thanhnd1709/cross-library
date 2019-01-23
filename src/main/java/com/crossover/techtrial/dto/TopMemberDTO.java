@@ -3,13 +3,17 @@
  */
 package com.crossover.techtrial.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author crossover
  *
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TopMemberDTO {
 
 	/**
@@ -20,16 +24,6 @@ public class TopMemberDTO {
 	 * @param email
 	 * @param bookCount
 	 */
-	public TopMemberDTO(Long memberId, String name, String email, Integer bookCount) {
-		this.memberId = memberId;
-		this.name = name;
-		this.email = email;
-		this.bookCount = bookCount;
-	}
-
-	public TopMemberDTO() {
-
-	}
 
 	private Long memberId;
 

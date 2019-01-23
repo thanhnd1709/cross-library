@@ -58,7 +58,7 @@ public class BookController {
 	 * PLEASE DO NOT CHANGE API SIGNATURE OR METHOD TYPE OF END POINTS
 	 */
 	@GetMapping(path = "/api/book/{book-id}")
-	public ResponseEntity<Book> getRideById(@PathVariable(name = "book-id", required = true) Long bookId) {
+	public ResponseEntity<Book> getBookById(@PathVariable(name = "book-id", required = true) Long bookId) {
 		Book book = bookService.findById(bookId);
 		if (book != null) {
 			log.info("Getting book successfully");

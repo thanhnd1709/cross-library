@@ -13,7 +13,10 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author kshah
@@ -22,6 +25,8 @@ import lombok.Data;
 @Entity
 @Table(name = "book")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Book implements Serializable {
 
 	/**
@@ -31,11 +36,11 @@ public class Book implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
+	private Long id;
 
 	@Column(name = "title")
 	@NotNull
 	@Size(max = 255)
-	String title;
-
+	private String title;
+	
 }

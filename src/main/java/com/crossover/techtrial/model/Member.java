@@ -23,7 +23,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author kshah
@@ -32,31 +34,33 @@ import lombok.Data;
 @Entity
 @Table(name = "member")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Member implements Serializable {
 
 	private static final long serialVersionUID = 9045098179799205444L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
+	private Long id;
 
 	@Column(name = "name")
 	@NotNull
 	@Size(max = 255)
-	String name;
+	private String name;
 
 	@Column(name = "email")
 	@NotNull
 	@Size(max = 255)
-	String email;
+	private String email;
 
 	@Enumerated(EnumType.STRING)
 	@NotNull
-	MembershipStatus membershipStatus;
+	private MembershipStatus membershipStatus;
 
 	@Column(name = "membership_start_date")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
-	LocalDateTime membershipStartDate;
+	private LocalDateTime membershipStartDate;
 }

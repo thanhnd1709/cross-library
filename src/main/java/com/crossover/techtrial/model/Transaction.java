@@ -22,7 +22,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author kshah
@@ -31,6 +33,8 @@ import lombok.Data;
 @Entity
 @Table(name = "transaction")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Transaction implements Serializable {
 
 	/**
@@ -40,17 +44,17 @@ public class Transaction implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
+	private Long id;
 
 	@OneToOne
 	@JoinColumn(name = "book_id", referencedColumnName = "id")
 	@NotNull
-	Book book;
+	private Book book;
 
 	@OneToOne
 	@JoinColumn(name = "member_id", referencedColumnName = "id")
 	@NotNull
-	Member member;
+	private Member member;
 	
 	// Date and time of issuance of this book
 	@Column(name = "date_of_issue")
@@ -58,12 +62,12 @@ public class Transaction implements Serializable {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
-	LocalDateTime dateOfIssue;
+	private LocalDateTime dateOfIssue;
 
 	// Date and time of return of this book
 	@Column(name = "date_of_return")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
-	LocalDateTime dateOfReturn;
+	private LocalDateTime dateOfReturn;
 }

@@ -3,69 +3,217 @@
  */
 package com.crossover.techtrial.controller;
 
-import org.junit.Assert;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.crossover.techtrial.exceptions.GlobalExceptionHandler;
 import com.crossover.techtrial.model.Member;
+import com.crossover.techtrial.model.Member;
+import com.crossover.techtrial.model.MembershipStatus;
 import com.crossover.techtrial.repositories.MemberRepository;
+import com.crossover.techtrial.service.MemberService;
+import com.crossover.techtrial.utils.MemberBuilder;
+import com.crossover.techtrial.utils.MemberBuilder;
+import com.crossover.techtrial.utils.TestUtil;
 
 /**
- * @author kshah
+ * @author David Cruise Thanh Nguyen
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class MemberControllerTest {
-  
-  MockMvc mockMvc;
-  
-  @Mock
-  private MemberController memberController;
-  
-  @Autowired
-  private TestRestTemplate template;
-  
-  @Autowired
-  MemberRepository memberRepository;
-  
-  @Before
-  public void setup() throws Exception {
-    mockMvc = MockMvcBuilders.standaloneSetup(memberController).build();
-  }
-  
-  @Test
-  public void testMemberRegsitrationsuccessful() throws Exception {
-    HttpEntity<Object> member = getHttpEntity(
-        "{\"name\": \"test 1\", \"email\": \"test10000000000001@gmail.com\"," 
-            + " \"membershipStatus\": \"ACTIVE\",\"membershipStartDate\":\"2018-08-08T12:12:12\" }");
-    
-    ResponseEntity<Member> response = template.postForEntity(
-        "/api/member", member, Member.class);
-    
-    Assert.assertEquals("test 1", response.getBody().getName());
-    Assert.assertEquals(200,response.getStatusCode().value());
-    
-    //cleanup the user
-    memberRepository.deleteById(response.getBody().getId());
-  }
 
-  private HttpEntity<Object> getHttpEntity(Object body) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    return new HttpEntity<Object>(body, headers);
-  }
+	MockMvc mockMvc;
 
+	@InjectMocks
+	private MemberController memberController;
+
+	@Mock
+	private MemberService memberService;
+
+	@Autowired
+	MemberRepository memberRepository;
+
+	@Before
+	public void setup() throws Exception {
+		mockMvc = MockMvcBuilders.standaloneSetup(memberController).setControllerAdvice(new GlobalExceptionHandler()).build();
+	}
+	/**
+	 * This method test the 'api/member' to get list of people available
+	 * @throws Exception
+	 */
+	@Test
+	public void getAllMembers_MemberFound_ShouldReturnFoundMemberEntries() throws Exception {
+		Member first = new MemberBuilder()
+				.withId(1L)
+				.withName("David")
+				.withEmail("david@gmail.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		Member second = new MemberBuilder()
+				.withId(2L)
+				.withName("Cruise")
+				.withEmail("cruise@gmail.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		when(memberService.getAll()).thenReturn(Arrays.asList(first, second));
+		mockMvc.perform(get("/api/member"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andDo(print())
+				.andExpect(jsonPath("$[0].id", is(1)))
+				.andExpect(jsonPath("$[0].name", is("David")))
+		        .andExpect(jsonPath("$[0].email", is("david@crossover.com")))
+				.andExpect(jsonPath("$[0].membershipStatus", is(MembershipStatus.ACTIVE)))
+				.andExpect(jsonPath("$[0].id", is(2)))
+				.andExpect(jsonPath("$[0].name", is("Cruise")))
+		        .andExpect(jsonPath("$[0].email", is("cruise@crossover.com")))
+				.andExpect(jsonPath("$[0].membershipStatus", is(MembershipStatus.ACTIVE)));
+		verify(memberService, times(1)).getAll();
+        verifyNoMoreInteractions(memberService);
+	}
+	/**
+	 * This method test '/api/member/{member-id}' api to get the member with
+	 * given member id
+	 * @throws Exception
+	 */
+	@Test
+	public void findById_MemberEntryFound_ShouldReturnFoundMemberEntry() throws Exception {
+		Member found = new MemberBuilder()
+				.withId(1L)
+				.withName("David")
+				.withEmail("david@gmail.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		when(memberService.findById(1L)).thenReturn(found);
+		mockMvc.perform(get("/api/member/{member-id}", 1L))
+		        .andExpect(status().isOk())
+		        .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.id", is(1)))
+				.andExpect(jsonPath("$.name", is("David")))
+		        .andExpect(jsonPath("$.email", is("david@crossover.com")))
+				.andExpect(jsonPath("$.membershipStatus", is(MembershipStatus.ACTIVE)));
+
+		verify(memberService, times(1)).findById(1L);
+		verifyNoMoreInteractions(memberService);
+	}
+	
+	/**
+	 * This method test api '/api/member/{member-id}'
+	 * @throws Exception
+	 */
+	@Test public void findById_MemberNotFound_ShouldReturnNotFoundEntity() throws Exception {
+		when(memberService.findById(2L)).thenReturn(null);
+		mockMvc.perform(get("/api/member/{member-id}", 2L))
+			.andDo(print())
+			.andExpect(status().isNotFound());
+		verify(memberService, times(1)).findById(2L);
+		verifyNoMoreInteractions(memberService);
+	}
+	
+	@Test
+	public void registerMember_WithNullEmail_ShouldReturnBadRequest() throws IOException, Exception {
+		Member entry = new MemberBuilder()
+				.withId(1L)
+				.withName("David")
+				.withEmail(null)
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		MvcResult result = mockMvc.perform(post("/api/member")
+	                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+	                .content(TestUtil.convertObjectToJsonBytes(entry)))
+	                .andExpect(status().isBadRequest())
+	                .andReturn();
+		assertThat(result.getResolvedException(), is(notNullValue()));
+        verifyZeroInteractions(memberService);
+	}
+	
+	@Test
+	public void registerMember_WithNullName_ShouldReturnBadRequest() throws IOException, Exception {
+		Member entry = new MemberBuilder()
+				.withId(1L)
+				.withName(null)
+				.withEmail("david@gamil.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		MvcResult result = mockMvc.perform(post("/api/member")
+	                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+	                .content(TestUtil.convertObjectToJsonBytes(entry)))
+	                .andExpect(status().isBadRequest())
+	                .andReturn();
+		assertThat(result.getResolvedException(), is(notNullValue()));
+        verifyZeroInteractions(memberService);
+	}
+	
+	/**
+	 * This method test the successfully case when saving member
+	 * @throws Exception
+	 */
+	@Test
+    public void saveMember_ShouldSaveMemberEntryAndReturnSavedEntry() throws Exception {
+		Member savedEntry = new MemberBuilder()
+				.withId(1L)
+				.withName("David")
+				.withEmail("david@gamil.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		when(memberService.save(any(Member.class))).thenReturn(savedEntry);
+		mockMvc.perform(post("/api/member")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(savedEntry)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.id", is(1)))
+				.andExpect(jsonPath("$.name", is("David")))
+		        .andExpect(jsonPath("$.email", is("david@crossover.com")))
+				.andExpect(jsonPath("$.membershipStatus", is(MembershipStatus.ACTIVE)));
+		
+		ArgumentCaptor<Member> entryCaptor = ArgumentCaptor.forClass(Member.class);
+        verify(memberService, times(1)).save(entryCaptor.capture());
+        verifyNoMoreInteractions(memberService);
+        
+        Member entryArgument = entryCaptor.getValue();
+        assertThat(entryArgument.getId(), is(1L));
+        assertThat(entryArgument.getName(), is("David"));
+        assertThat(entryArgument.getEmail(), is("david@crossover.com"));
+        assertThat(entryArgument.getMembershipStatus(), is(MembershipStatus.ACTIVE));
+	}
 }
