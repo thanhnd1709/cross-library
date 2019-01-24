@@ -16,7 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.crossover.techtrial.exceptions.TransactionException;
+import com.crossover.techtrial.model.Book;
+import com.crossover.techtrial.model.Member;
 import com.crossover.techtrial.model.Transaction;
+import com.crossover.techtrial.service.BookService;
+import com.crossover.techtrial.service.MemberService;
 import com.crossover.techtrial.service.TransactionService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +35,12 @@ public class TransactionController {
 
 	@Autowired
 	private TransactionService transactionService;
+	
+	@Autowired
+	private BookService bookService;
+	
+	@Autowired
+	MemberService memberService;
 	/*
 	 * PLEASE DO NOT CHANGE SIGNATURE OR METHOD TYPE OF END POINTS Example Post
 	 * Request : { "bookId":1,"memberId":33 }
@@ -51,7 +61,23 @@ public class TransactionController {
 			throw new TransactionException(String.format("memberId %s is not a valid number", params.get("memberId")), HttpStatus.BAD_REQUEST);
 		}
 		Transaction transaction = new Transaction();
-		transactionService.validate(transaction, bookId, memberId);
+		// validate book and member exist
+		Book book = bookService.findById(bookId);
+		if (book == null) {
+			throw new TransactionException(String.format("bookId %s does not exist", bookId), HttpStatus.NOT_FOUND);
+		}
+		transaction.setBook(book);
+		Member member = memberService.findById(memberId);
+		if (member == null) {
+			throw new TransactionException(String.format("memberId %s does not exist", memberId), HttpStatus.NOT_FOUND);
+		}
+		transaction.setMember(member);
+		// validate the current book has not been borrowed by another member
+		Transaction currentTran = transactionService.findCurrentTransactionByBookId(bookId);
+		if (currentTran != null) {
+			throw new TransactionException(String.format("bookId %s has been borrowed by another member", bookId),
+					HttpStatus.FORBIDDEN);
+		}
 		Transaction tran = transactionService.save(transaction);
 		log.info("Transaction {} was registered successfully", tran);
 		return ResponseEntity.ok(tran);

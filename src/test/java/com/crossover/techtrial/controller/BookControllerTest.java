@@ -71,7 +71,7 @@ public class BookControllerTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void getAllBooks_BookFound_ShouldReturnFoundBookEntries() throws Exception {
+	public void test_getBooks_ShouldReturnFoundBookEntries() throws Exception {
 		Book first = new BookBuilder()
 				.withId(1L)
 				.withTitle("The First Book")
@@ -98,7 +98,7 @@ public class BookControllerTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void findById_BookEntryFound_ShouldReturnFoundBookEntry() throws Exception {
+	public void test_findById_BookEntryFound_ShouldReturnFoundBookEntry() throws Exception {
 		Book found = new BookBuilder()
 				.withId(1L)
 				.withTitle("The First Book")
@@ -118,7 +118,7 @@ public class BookControllerTest {
 	 * This method test api '/api/book/{book-id}'
 	 * @throws Exception
 	 */
-	@Test public void findById_BookNotFound_ShouldReturnNotFoundEntity() throws Exception {
+	@Test public void test_findById_BookNotFound_ShouldReturnNotFoundEntity() throws Exception {
 		when(bookService.findById(2L)).thenReturn(null);
 		mockMvc.perform(get("/api/book/{book-id}", 2L))
 			.andDo(print())
@@ -128,7 +128,7 @@ public class BookControllerTest {
 	}
 	
 	@Test
-	public void saveBook_WithNullTitle_ShouldReturnBadRequest() throws IOException, Exception {
+	public void test_saveBook_WithNullTitle_ShouldReturnBadRequest() throws IOException, Exception {
 		Book entry = new BookBuilder()
 				.withId(1L)
 				.withTitle(null)
@@ -147,7 +147,7 @@ public class BookControllerTest {
 	 * @throws Exception
 	 */
 	@Test
-    public void saveBook_ShouldSaveBookEntryAndReturnSavedEntry() throws Exception {
+    public void test_saveBook_ShouldSaveBookEntry_AndReturnSavedEntry() throws Exception {
 		Book savedEntry = new BookBuilder()
 				.withId(1L)
 				.withTitle("The First Book")

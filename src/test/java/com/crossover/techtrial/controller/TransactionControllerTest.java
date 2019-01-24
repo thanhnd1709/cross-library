@@ -10,23 +10,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,11 +40,12 @@ import com.crossover.techtrial.model.Member;
 import com.crossover.techtrial.model.MembershipStatus;
 import com.crossover.techtrial.model.Transaction;
 import com.crossover.techtrial.repositories.TransactionRepository;
+import com.crossover.techtrial.service.BookService;
+import com.crossover.techtrial.service.MemberService;
 import com.crossover.techtrial.service.TransactionService;
 import com.crossover.techtrial.utils.BookBuilder;
 import com.crossover.techtrial.utils.MemberBuilder;
 import com.crossover.techtrial.utils.TestUtil;
-import com.crossover.techtrial.utils.TransactionBuilder;
 
 /**
  * @author David Cruise Thanh Nguyen
@@ -64,6 +62,12 @@ public class TransactionControllerTest {
 
 	@Mock
 	private TransactionService transactionService;
+	
+	@Mock
+	private BookService bookService;
+	
+	@Mock
+	private MemberService memberService;
 
 	@Autowired
 	TransactionRepository transactionRepository;
@@ -72,102 +76,178 @@ public class TransactionControllerTest {
 	public void setup() throws Exception {
 		mockMvc = MockMvcBuilders.standaloneSetup(transactionController).setControllerAdvice(new GlobalExceptionHandler()).build();
 	}
+	
 	/**
-	 * This method test the 'api/transaction' to get list of people available
+	 * This method test the 'api/transaction' when the bookId is not valid long value
 	 * @throws Exception
 	 */
 	@Test
-	public void getAllTransactions_TransactionFound_ShouldReturnFoundTransactionEntries() throws Exception {
-		/*Book firstBook = new BookBuilder()
-				.withId(1L)
-				.withTitle("The First Book")
-				.build();
-		Book secondBook = new BookBuilder()
-				.withId(2L)
-				.withTitle("The Second Book")
-				.build();
-		Member firstMember = new MemberBuilder()
-				.withId(1L)
-				.withName("David")
-				.withEmail("david@gmail.com")
-				.withMembershipStatus(MembershipStatus.ACTIVE)
-				.withMembershipStartDate(LocalDateTime.now())
-				.build();
-		Member secondMember = new MemberBuilder()
-				.withId(2L)
-				.withName("Cruise")
-				.withEmail("cruise@gmail.com")
-				.withMembershipStatus(MembershipStatus.ACTIVE)
-				.withMembershipStartDate(LocalDateTime.now())
-				.build();
-		Transaction firstTransaction = new TransactionBuilder()
-				.withId(1L)
-				.withBook(firstBook)
-				.withMember(firstMember)
-				.withDateOfIssue(LocalDateTime.now())
-				.withDateOfReturn(null)
-				.build();
-		Transaction secondTransaction = new TransactionBuilder()
-				.withId(1L)
-				.withBook(secondBook)
-				.withMember(secondMember)
-				.withDateOfIssue(LocalDateTime.now())
-				.withDateOfReturn(null)
-				.build();*/
-		/*when(transactionService.getAll()).thenReturn(Arrays.asList(first, second));
-		mockMvc.perform(get("/api/transaction"))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-				.andDo(print())
-				.andExpect(jsonPath("$[0].id", is(1)))
-				.andExpect(jsonPath("$[0].name", is("David")))
-		        .andExpect(jsonPath("$[0].email", is("david@crossover.com")))
-				.andExpect(jsonPath("$[0].transactionshipStatus", is(TransactionshipStatus.ACTIVE)))
-				.andExpect(jsonPath("$[0].id", is(2)))
-				.andExpect(jsonPath("$[0].name", is("Cruise")))
-		        .andExpect(jsonPath("$[0].email", is("cruise@crossover.com")))
-				.andExpect(jsonPath("$[0].transactionshipStatus", is(TransactionshipStatus.ACTIVE)));
-		verify(transactionService, times(1)).getAll();*/
-        verifyNoMoreInteractions(transactionService);
-	}
-	/**
-	 * This method test '/api/transaction/{transaction-id}' api to get the transaction with
-	 * given transaction id
-	 * @throws Exception
-	 */
-	@Test
-	public void findById_TransactionEntryFound_ShouldReturnFoundTransactionEntry() throws Exception {
-		Book firstBook = new BookBuilder()
-				.withId(1L)
-				.withTitle("The First Book")
-				.build();
-		Member firstMember = new MemberBuilder()
-				.withId(1L)
-				.withName("David")
-				.withEmail("david@gmail.com")
-				.withMembershipStatus(MembershipStatus.ACTIVE)
-				.withMembershipStartDate(LocalDateTime.now())
-				.build();
-		Transaction firstTransaction = new TransactionBuilder()
-				.withId(1L)
-				.withBook(firstBook)
-				.withMember(firstMember)
-				.withDateOfIssue(LocalDateTime.now())
-				.withDateOfReturn(null)
-				.build();
-		when(transactionService.findById(1L)).thenReturn(firstTransaction);
-		mockMvc.perform(get("/api/transaction/{transaction-id}", 1L))
-		        .andExpect(status().isOk())
-		        .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.id", is(1)))
-				.andExpect(jsonPath("$.book.id", is(1)))
-				.andExpect(jsonPath("$.book.title", is("The First Book")))
-				.andExpect(jsonPath("$.member.id", is(1)))
-				.andExpect(jsonPath("$.member.name", is("David")))
-		        .andExpect(jsonPath("$.member.email", is("david@crossover.com")))
-				.andExpect(jsonPath("$.member.membershipStatus", is(MembershipStatus.ACTIVE)));
-		// TODO
-		verify(transactionService, times(1)).findById(1L);
+	public void test_issueBookToMember_WithInvalidBookId_ShouldReturnBadRequest() throws IOException, Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("bookId", "bookId");
+		params.put("memberId", "1");
+		MvcResult result = mockMvc.perform(post("/api/transaction")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(params)))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+		assertThat(result.getResolvedException(), is(notNullValue()));
 		verifyNoMoreInteractions(transactionService);
 	}
+	
+	/**
+	 * This method test the 'api/transaction' when the bookId is not valid long value
+	 * @throws Exception
+	 */
+	@Test
+	public void test_issueBookToMember_WithInvalidMember_ShouldReturnBadRequest() throws IOException, Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("bookId", "1");
+		params.put("memberId", "memberId");
+		MvcResult result = mockMvc.perform(post("/api/transaction")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(params)))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+		assertThat(result.getResolvedException(), is(notNullValue()));
+		verifyNoMoreInteractions(transactionService);
+	}
+	
+	
+	/**
+	 * This method test the 'api/transaction' when the bookId is not exist in database
+	 * @throws Exception
+	 */
+	@Test
+	public void test_issueBookToMember_WithNotExistBookId_ShouldReturnNotFound() throws IOException, Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("bookId", "3");
+		params.put("memberId", "1");
+		Member member = new MemberBuilder()
+				.withId(1L)
+				.withName("David")
+				.withEmail("david@gmail.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		when(bookService.findById(3L)).thenReturn(null);
+		when(memberService.findById(1L)).thenReturn(member);
+		MvcResult result = mockMvc.perform(post("/api/transaction")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(params)))
+                .andExpect(status().isNotFound())
+                .andReturn();
+		assertThat(result.getResolvedException(), is(notNullValue()));
+		verifyNoMoreInteractions(transactionService);
+	}
+	
+	/**
+	 * This method test the 'api/transaction' when the member is not exist in database
+	 * @throws Exception
+	 */
+	@Test
+	public void test_issueBookToMember_WithNotExistMemberId_ShouldReturnNotFound() throws IOException, Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("bookId", "3");
+		params.put("memberId", "1");
+		Book book = new BookBuilder()
+				.withId(1L)
+				.withTitle("The First Book")
+				.build();
+		when(bookService.findById(3L)).thenReturn(book);
+		when(memberService.findById(1L)).thenReturn(null);
+		MvcResult result = mockMvc.perform(post("/api/transaction")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(params)))
+                .andExpect(status().isNotFound())
+                .andReturn();
+		assertThat(result.getResolvedException(), is(notNullValue()));
+		verifyNoMoreInteractions(transactionService);
+	}
+	
+	/**
+	 * This method test the 'api/transaction' when the member is not exist in database
+	 * @throws Exception
+	 */
+	@Test
+	public void test_issueBookToMember_WithAllreadyBorrowedBook_ShouldReturnForbidden() throws IOException, Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("bookId", "3");
+		params.put("memberId", "1");
+		Book book = new BookBuilder()
+				.withId(1L)
+				.withTitle("The First Book")
+				.build();
+		Member member = new MemberBuilder()
+				.withId(1L)
+				.withName("David")
+				.withEmail("david@gmail.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		when(bookService.findById(3L)).thenReturn(book);
+		when(memberService.findById(1L)).thenReturn(member);
+		when(transactionService.findCurrentTransactionByBookId(any(Long.class))).thenReturn(new Transaction());
+		MvcResult result = mockMvc.perform(post("/api/transaction")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(params)))
+                .andExpect(status().isForbidden())
+                .andReturn();
+		assertThat(result.getResolvedException(), is(notNullValue()));
+		verify(transactionService, times(1)).findCurrentTransactionByBookId(any(Long.class));
+		verifyNoMoreInteractions(transactionService);
+	}
+	
+	/**
+	 * This method test the 'api/transaction' failure case when the book has already been returned
+	 * @throws Exception
+	 */
+	@Test
+	public void test_issueBookToMember_Successfull_ShouldReturnOK() throws IOException, Exception {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("bookId", "3");
+		params.put("memberId", "1");
+		Book book = new BookBuilder()
+				.withId(1L)
+				.withTitle("The First Book")
+				.build();
+		Member member = new MemberBuilder()
+				.withId(1L)
+				.withName("David")
+				.withEmail("david@gmail.com")
+				.withMembershipStatus(MembershipStatus.ACTIVE)
+				.withMembershipStartDate(LocalDateTime.now())
+				.build();
+		when(bookService.findById(3L)).thenReturn(book);
+		when(memberService.findById(1L)).thenReturn(member);
+		when(transactionService.findCurrentTransactionByBookId(any(Long.class))).thenReturn(null);
+		MvcResult result = mockMvc.perform(post("/api/transaction")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(params)))
+                .andExpect(status().isOk())
+                .andReturn();
+		// TODO Argument captor
+		verify(transactionService, times(1)).findCurrentTransactionByBookId(any(Long.class));
+		verify(transactionService, times(1)).save(any(Transaction.class));
+		verifyNoMoreInteractions(transactionService);
+	}
+	
+	/**
+	 * This method test the 'api/transaction' return successfully
+	 * @throws Exception
+	 */
+	@Test
+	public void test_returnBookTransaction_Successfull_ShouldReturnOk() throws IOException, Exception {
+		Transaction currentTran = new Transaction();
+		currentTran.setDateOfReturn(null);
+		when(transactionService.findById(1L)).thenReturn(currentTran);
+		MvcResult result = mockMvc.perform(patch("/api/transaction/{transactionId}/return", 1L))
+                .andExpect(status().isOk())
+                .andReturn();
+		verify(transactionService, times(1)).findById(1L);
+		verify(transactionService, times(1)).update(currentTran);
+		verifyNoMoreInteractions(transactionService);
+		// TODO ArgumentCaptor
+	}
+	
 }

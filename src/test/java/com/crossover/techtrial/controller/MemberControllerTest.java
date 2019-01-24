@@ -39,11 +39,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.crossover.techtrial.exceptions.GlobalExceptionHandler;
 import com.crossover.techtrial.model.Member;
-import com.crossover.techtrial.model.Member;
 import com.crossover.techtrial.model.MembershipStatus;
 import com.crossover.techtrial.repositories.MemberRepository;
 import com.crossover.techtrial.service.MemberService;
-import com.crossover.techtrial.utils.MemberBuilder;
 import com.crossover.techtrial.utils.MemberBuilder;
 import com.crossover.techtrial.utils.TestUtil;
 
@@ -75,7 +73,7 @@ public class MemberControllerTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void getAllMembers_MemberFound_ShouldReturnFoundMemberEntries() throws Exception {
+	public void test_getAll_Members_ShouldReturnFoundMemberEntries() throws Exception {
 		Member first = new MemberBuilder()
 				.withId(1L)
 				.withName("David")
@@ -97,12 +95,12 @@ public class MemberControllerTest {
 				.andDo(print())
 				.andExpect(jsonPath("$[0].id", is(1)))
 				.andExpect(jsonPath("$[0].name", is("David")))
-		        .andExpect(jsonPath("$[0].email", is("david@crossover.com")))
-				.andExpect(jsonPath("$[0].membershipStatus", is(MembershipStatus.ACTIVE)))
-				.andExpect(jsonPath("$[0].id", is(2)))
-				.andExpect(jsonPath("$[0].name", is("Cruise")))
-		        .andExpect(jsonPath("$[0].email", is("cruise@crossover.com")))
-				.andExpect(jsonPath("$[0].membershipStatus", is(MembershipStatus.ACTIVE)));
+		        .andExpect(jsonPath("$[0].email", is("david@gmail.com")))
+				.andExpect(jsonPath("$[0].membershipStatus", is("ACTIVE")))
+				.andExpect(jsonPath("$[1].id", is(2)))
+				.andExpect(jsonPath("$[1].name", is("Cruise")))
+		        .andExpect(jsonPath("$[1].email", is("cruise@gmail.com")))
+				.andExpect(jsonPath("$[1].membershipStatus", is("ACTIVE")));
 		verify(memberService, times(1)).getAll();
         verifyNoMoreInteractions(memberService);
 	}
@@ -112,7 +110,7 @@ public class MemberControllerTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void findById_MemberEntryFound_ShouldReturnFoundMemberEntry() throws Exception {
+	public void test_getMemberById_MemberEntryFound_ShouldReturnFoundMemberEntry() throws Exception {
 		Member found = new MemberBuilder()
 				.withId(1L)
 				.withName("David")
@@ -126,9 +124,8 @@ public class MemberControllerTest {
 		        .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.name", is("David")))
-		        .andExpect(jsonPath("$.email", is("david@crossover.com")))
-				.andExpect(jsonPath("$.membershipStatus", is(MembershipStatus.ACTIVE)));
-
+		        .andExpect(jsonPath("$.email", is("david@gmail.com")))
+				.andExpect(jsonPath("$.membershipStatus", is("ACTIVE")));
 		verify(memberService, times(1)).findById(1L);
 		verifyNoMoreInteractions(memberService);
 	}
@@ -137,7 +134,7 @@ public class MemberControllerTest {
 	 * This method test api '/api/member/{member-id}'
 	 * @throws Exception
 	 */
-	@Test public void findById_MemberNotFound_ShouldReturnNotFoundEntity() throws Exception {
+	@Test public void test_getMemberById_MemberNotFound_ShouldReturnNotFoundEntity() throws Exception {
 		when(memberService.findById(2L)).thenReturn(null);
 		mockMvc.perform(get("/api/member/{member-id}", 2L))
 			.andDo(print())
@@ -147,7 +144,7 @@ public class MemberControllerTest {
 	}
 	
 	@Test
-	public void registerMember_WithNullEmail_ShouldReturnBadRequest() throws IOException, Exception {
+	public void test_register_Member_WithNullEmail_ShouldReturnBadRequest() throws IOException, Exception {
 		Member entry = new MemberBuilder()
 				.withId(1L)
 				.withName("David")
@@ -165,7 +162,7 @@ public class MemberControllerTest {
 	}
 	
 	@Test
-	public void registerMember_WithNullName_ShouldReturnBadRequest() throws IOException, Exception {
+	public void test_register_Member_WithNullName_ShouldReturnBadRequest() throws IOException, Exception {
 		Member entry = new MemberBuilder()
 				.withId(1L)
 				.withName(null)
@@ -187,11 +184,11 @@ public class MemberControllerTest {
 	 * @throws Exception
 	 */
 	@Test
-    public void saveMember_ShouldSaveMemberEntryAndReturnSavedEntry() throws Exception {
+    public void test_register_Member_ShouldSaveMemberEntry_AndReturnSavedEntry() throws Exception {
 		Member savedEntry = new MemberBuilder()
 				.withId(1L)
 				.withName("David")
-				.withEmail("david@gamil.com")
+				.withEmail("david@gmail.com")
 				.withMembershipStatus(MembershipStatus.ACTIVE)
 				.withMembershipStartDate(LocalDateTime.now())
 				.build();
@@ -203,8 +200,8 @@ public class MemberControllerTest {
                 .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.id", is(1)))
 				.andExpect(jsonPath("$.name", is("David")))
-		        .andExpect(jsonPath("$.email", is("david@crossover.com")))
-				.andExpect(jsonPath("$.membershipStatus", is(MembershipStatus.ACTIVE)));
+		        .andExpect(jsonPath("$.email", is("david@gmail.com")))
+				.andExpect(jsonPath("$.membershipStatus", is("ACTIVE")));
 		
 		ArgumentCaptor<Member> entryCaptor = ArgumentCaptor.forClass(Member.class);
         verify(memberService, times(1)).save(entryCaptor.capture());
@@ -213,7 +210,7 @@ public class MemberControllerTest {
         Member entryArgument = entryCaptor.getValue();
         assertThat(entryArgument.getId(), is(1L));
         assertThat(entryArgument.getName(), is("David"));
-        assertThat(entryArgument.getEmail(), is("david@crossover.com"));
+        assertThat(entryArgument.getEmail(), is("david@gmail.com"));
         assertThat(entryArgument.getMembershipStatus(), is(MembershipStatus.ACTIVE));
 	}
 }

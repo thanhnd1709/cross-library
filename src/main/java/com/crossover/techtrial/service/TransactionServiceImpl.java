@@ -5,14 +5,10 @@ import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.crossover.techtrial.exceptions.TransactionException;
-import com.crossover.techtrial.model.Book;
-import com.crossover.techtrial.model.Member;
 import com.crossover.techtrial.model.Transaction;
 import com.crossover.techtrial.repositories.BookRepository;
 import com.crossover.techtrial.repositories.MemberRepository;
@@ -39,7 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
 		return transactionRepository.save(tran);
 	}
 
-	@Override
+	/*@Override
 	public void validate(Transaction transaction, Long bookId, Long memberId) {
 		// validate book and member exist
 		Book book = bookRepository.findById(bookId).orElse(null);
@@ -58,7 +54,7 @@ public class TransactionServiceImpl implements TransactionService {
 			throw new TransactionException(String.format("bookId %s has been borrowed by another member", bookId),
 					HttpStatus.FORBIDDEN);
 		}
-	}
+	}*/
 
 	@Override
 	@Cacheable(value = "transaction", key = "#transactionId")
@@ -71,6 +67,11 @@ public class TransactionServiceImpl implements TransactionService {
 	@CachePut(value = "transaction", key = "#transaction.id")
 	public void update(Transaction transaction) {
 		transactionRepository.save(transaction);
+	}
+
+	@Override
+	public Transaction findCurrentTransactionByBookId(Long bookId) {
+		return transactionRepository.findCurrentTransactionByBookId(bookId);
 	}
 
 }

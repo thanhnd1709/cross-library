@@ -8,7 +8,9 @@ public interface TransactionService {
 
 	public Transaction save(Transaction tran);
 
-	public void validate(Transaction transaction, Long bookId, Long memberId);
+	//public void validate(Transaction transaction, Long bookId, Long memberId);
 
 	public void update(Transaction transaction);
+
+	public Transaction findCurrentTransactionByBookId(Long bookId);
 }
