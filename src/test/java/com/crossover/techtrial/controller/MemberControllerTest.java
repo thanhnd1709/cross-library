@@ -21,7 +21,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +40,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.crossover.techtrial.dto.TopMemberDTO;
 import com.crossover.techtrial.exceptions.GlobalExceptionHandler;
 import com.crossover.techtrial.model.Member;
 import com.crossover.techtrial.model.MembershipStatus;
@@ -44,6 +48,7 @@ import com.crossover.techtrial.repositories.MemberRepository;
 import com.crossover.techtrial.service.MemberService;
 import com.crossover.techtrial.utils.MemberBuilder;
 import com.crossover.techtrial.utils.TestUtil;
+import com.crossover.techtrial.utils.TopMemberDTOBuilder;
 
 /**
  * @author David Cruise Thanh Nguyen
@@ -212,5 +217,76 @@ public class MemberControllerTest {
         assertThat(entryArgument.getName(), is("David"));
         assertThat(entryArgument.getEmail(), is("david@gmail.com"));
         assertThat(entryArgument.getMembershipStatus(), is(MembershipStatus.ACTIVE));
+	}
+	
+	@Test
+	public void get_TopMemberShouldReturnFoundMember()  throws Exception{
+		TopMemberDTO first = new TopMemberDTOBuilder()
+				.withName("first")
+				.withEmail("first@crossover.com")
+				.withMemberId(1L)
+				.withBookCount(10)
+				.build();
+		TopMemberDTO second = new TopMemberDTOBuilder()
+				.withName("second")
+				.withEmail("second@crossover.com")
+				.withMemberId(2L)
+				.withBookCount(20)
+				.build();
+		TopMemberDTO third = new TopMemberDTOBuilder()
+				.withName("third")
+				.withEmail("third@crossover.com")
+				.withMemberId(3L)
+				.withBookCount(30)
+				.build();
+		TopMemberDTO fouth = new TopMemberDTOBuilder()
+				.withName("fouth")
+				.withEmail("fouth@crossover.com")
+				.withMemberId(4L)
+				.withBookCount(40)
+				.build();
+		TopMemberDTO fifth = new TopMemberDTOBuilder()
+				.withName("fifth")
+				.withEmail("fifth@crossover.com")
+				.withMemberId(5L)
+				.withBookCount(50)
+				.build();
+		List<TopMemberDTO> topMemberList = new ArrayList<TopMemberDTO>();
+		topMemberList.add(first);
+		topMemberList.add(second);
+		topMemberList.add(third);
+		topMemberList.add(fouth);
+		topMemberList.add(fifth);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime startTime = LocalDateTime.parse("2018-09-18 14:00:00", formatter);
+		LocalDateTime endTime = LocalDateTime.parse("2018-09-18 14:03:00", formatter);
+		when(memberService.getTopMembers(5L, startTime, endTime)).thenReturn(topMemberList);
+		mockMvc.perform(get("/api/member/top-member?startTime=2018-09-18T14:00:00&endTime=2018-09-18T14:03:00"))
+		.andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+        .andExpect(jsonPath("$[0].name", is(first.getName())))
+        .andExpect(jsonPath("$[0].email", is(first.getEmail())))
+        .andExpect(jsonPath("$[0].memberId", is(1)))
+        .andExpect(jsonPath("$[0].bookCount", is(10)))
+        .andExpect(jsonPath("$[1].name", is(second.getName())))
+        .andExpect(jsonPath("$[1].email", is(second.getEmail())))
+        .andExpect(jsonPath("$[1].memberId", is(2)))
+        .andExpect(jsonPath("$[1].bookCount", is(20)))
+        .andExpect(jsonPath("$[2].name", is(third.getName())))
+        .andExpect(jsonPath("$[2].email", is(third.getEmail())))
+        .andExpect(jsonPath("$[2].memberId", is(3)))
+        .andExpect(jsonPath("$[2].bookCount", is(30)))
+        .andExpect(jsonPath("$[3].name", is(fouth.getName())))
+        .andExpect(jsonPath("$[3].email", is(fouth.getEmail())))
+        .andExpect(jsonPath("$[3].memberId", is(4)))
+        .andExpect(jsonPath("$[3].bookCount", is(40)))
+        .andExpect(jsonPath("$[4].name", is(fifth.getName())))
+        .andExpect(jsonPath("$[4].email", is(fifth.getEmail())))
+        .andExpect(jsonPath("$[4].memberId", is(5)))
+        .andExpect(jsonPath("$[4].bookCount", is(50)));
+
+		verify(memberService, times(1)).getTopMembers(5L, startTime, endTime);
+		verifyNoMoreInteractions(memberService);
 	}
 }

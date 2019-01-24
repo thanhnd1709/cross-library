@@ -226,7 +226,6 @@ public class TransactionControllerTest {
                 .content(TestUtil.convertObjectToJsonBytes(params)))
                 .andExpect(status().isOk())
                 .andReturn();
-		// TODO Argument captor
 		verify(transactionService, times(1)).findCurrentTransactionByBookId(any(Long.class));
 		verify(transactionService, times(1)).save(any(Transaction.class));
 		verifyNoMoreInteractions(transactionService);
@@ -247,7 +246,6 @@ public class TransactionControllerTest {
 		verify(transactionService, times(1)).findById(1L);
 		verify(transactionService, times(1)).update(currentTran);
 		verifyNoMoreInteractions(transactionService);
-		// TODO ArgumentCaptor
 	}
 	
 }
